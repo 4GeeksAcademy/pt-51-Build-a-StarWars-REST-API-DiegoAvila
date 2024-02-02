@@ -3,10 +3,15 @@ from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 
 class User(db.Model):
+    # id = db.Column(db.Integer, primary_key=True)
+    # email = db.Column(db.String(120), unique=True, nullable=True)
+    # password = db.Column(db.String(80), unique=False, nullable=True)
+    # is_active = db.Column(db.Boolean(), unique=False, nullable=True)
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(120), unique=True, nullable=False)
+    name = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(80), unique=False, nullable=False)
-    is_active = db.Column(db.Boolean(), unique=False, nullable=False)
+
+    favoritos_user = db.relationship('Favoritos', backref='user', lazy=True)
 
     def __repr__(self):
         return '<User %r>' % self.id
@@ -14,7 +19,7 @@ class User(db.Model):
     def serialize(self):
         return {
             "id": self.id,
-            "email": self.email,
+            "Name": self.name,
             # do not serialize the password, its a security breach
         }
     
@@ -24,18 +29,18 @@ class Films(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(250), nullable=False)
     episode_id = db.Column(db.Integer)
-    opening_crawl = db.Column(db.String(250), nullable=False)
-    director = db.Column(db.String(250), nullable=False)
-    producer = db.Column(db.String(250), nullable=False)
-    release_date = db.Column(db.String(250), nullable=False)
+    opening_crawl = db.Column(db.String(250), nullable=True)
+    director = db.Column(db.String(250), nullable=True)
+    producer = db.Column(db.String(250), nullable=True)
+    release_date = db.Column(db.String(250), nullable=True)
     # id_species = db.Column(db.Integer, db.ForeignKey('species.id'))
     # id_starships = db.Column(db.Integer, db.ForeignKey('starships.id'))
     # id_vehicles = db.Column(db.Integer, db.ForeignKey('vehicles.id'))
     # id_people = db.Column(db.Integer, db.ForeignKey('peple.id'))
     # id_planets = db.Column(db.Integer, db.ForeignKey('planets.id'))
-    url = db.Column(db.String(250), nullable=False)
-    created = db.Column(db.String(250), nullable=False)
-    edited = db.Column(db.String(250), nullable=False)
+    url = db.Column(db.String(250), nullable=True)
+    created = db.Column(db.String(250), nullable=True)
+    edited = db.Column(db.String(250), nullable=True)
 
     # favoritos_films = db.relationship('Favoritos', backref='films', lazy=True)
     # people = db.relationship('People', backref='films', lazy=True)
@@ -60,25 +65,26 @@ class People(db.Model):
     # Notice that each db.Column is also a normal Python instance attribute.
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(250), nullable=False)
-    birth_year = db.Column(db.String(250), nullable=False)
-    eye_color = db.Column(db.String(250), nullable=False)
-    gender = db.Column(db.String(250), nullable=False)
-    hair_color = db.Column(db.String(250), nullable=False)
-    height = db.Column(db.String(250), nullable=False)
-    mass = db.Column(db.String(250), nullable=False)
-    skin_color = db.Column(db.String(250), nullable=False)
-    homeworld = db.Column(db.String(250), nullable=False)
-    url = db.Column(db.String(250), nullable=False)
-    created = db.Column(db.String(250), nullable=False)
-    edited = db.Column(db.String(250), nullable=False)
+    birth_year = db.Column(db.String(250), nullable=True)
+    eye_color = db.Column(db.String(250), nullable=True)
+    gender = db.Column(db.String(250), nullable=True)
+    hair_color = db.Column(db.String(250), nullable=True)
+    height = db.Column(db.String(250), nullable=True)
+    mass = db.Column(db.String(250), nullable=True)
+    skin_color = db.Column(db.String(250), nullable=True)
+    homeworld = db.Column(db.String(250), nullable=True)
+    url = db.Column(db.String(250), nullable=True)
+    created = db.Column(db.String(250), nullable=True)
+    edited = db.Column(db.String(250), nullable=True)
     # id_films = db.Column(db.Integer, db.ForeignKey('films.id'))
-    # id_species = db.Column(db.Integer, db.ForeignKey('species.id'))
+    id_species = db.Column(db.Integer, db.ForeignKey('species.id'))
     # id_starships = db.Column(db.Integer, db.ForeignKey('starships.id'))
-    # id_vehicles = db.Column(db.Integer, db.ForeignKey('vehicles.id'))
+    id_vehicles = db.Column(db.Integer, db.ForeignKey('vehicles.id'))
 
-    # favoritos_people = db.relationship('Favoritos', backref='people', lazy=True)
+    favoritos_people = db.relationship('Favoritos', backref='people', lazy=True)
     vehicle = db.relationship('Vehicles', backref='people', lazy=True)
-    # species = db.relationship('Species', backref='people', lazy=True)
+    species = db.relationship('Species', backref='people', lazy=True)
+    planets = db.relationship('Planets', backref='people', lazy=True)
     # starships = db.relationship('Starships', backref='people', lazy=True)
     
     def __repr__(self):
@@ -95,23 +101,23 @@ class Vehicles(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(250), nullable=False)
-    model = db.Column(db.String(250), nullable=False)
-    vehicle_class = db.Column(db.String(250), nullable=False)
-    manufacturer = db.Column(db.String(250), nullable=False)
-    length = db.Column(db.String(250), nullable=False)
-    cost_in_credits = db.Column(db.String(250), nullable=False)
-    crew = db.Column(db.String(250), nullable=False)
-    passengers = db.Column(db.String(250), nullable=False)
-    max_atmosphering_speed = db.Column(db.String(250), nullable=False)
-    cargo_capacity = db.Column(db.String(250), nullable=False)
-    consumables = db.Column(db.String(250), nullable=False)
+    model = db.Column(db.String(250), nullable=True)
+    vehicle_class = db.Column(db.String(250), nullable=True)
+    manufacturer = db.Column(db.String(250), nullable=True)
+    length = db.Column(db.String(250), nullable=True)
+    cost_in_credits = db.Column(db.String(250), nullable=True)
+    crew = db.Column(db.String(250), nullable=True)
+    passengers = db.Column(db.String(250), nullable=True)
+    max_atmosphering_speed = db.Column(db.String(250), nullable=True)
+    cargo_capacity = db.Column(db.String(250), nullable=True)
+    consumables = db.Column(db.String(250), nullable=True)
     # id_films = db.Column(db.Integer, db.ForeignKey('films.id'))
-    id_people = db.Column(db.Integer, db.ForeignKey('people.id'))
-    url = db.Column(db.String(250), nullable=False)
-    created = db.Column(db.String(250), nullable=False)
-    edited = db.Column(db.String(250), nullable=False)
-
-    # favoritos_vehicle = db.relationship('Favoritos', backref='vehicle', lazy=True)
+    # id_people = db.Column(db.Integer, db.ForeignKey('people.id'))
+    url = db.Column(db.String(250), nullable=True)
+    created = db.Column(db.String(250), nullable=True)
+    edited = db.Column(db.String(250), nullable=True)
+    
+    favoritos_vehicle = db.relationship('Favoritos', backref='vehicle', lazy=True)
     # people = db.relationship('People', backref='vehicle', lazy=True)
     #person = db.relationship(Person)
     def __repr__(self):
@@ -131,21 +137,21 @@ class Planets(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(250), nullable=False)
-    diameter = db.Column(db.String(250), nullable=False)
-    rotation_period = db.Column(db.String(250), nullable=False)
-    orbital_period = db.Column(db.String(250), nullable=False)
-    gravity = db.Column(db.String(250), nullable=False)
-    population = db.Column(db.String(250), nullable=False)
-    climate = db.Column(db.String(250), nullable=False)
-    terrain = db.Column(db.String(250), nullable=False)
-    surface_water = db.Column(db.String(250), nullable=False)
+    diameter = db.Column(db.String(250), nullable=True)
+    rotation_period = db.Column(db.String(250), nullable=True)
+    orbital_period = db.Column(db.String(250), nullable=True)
+    gravity = db.Column(db.String(250), nullable=True)
+    population = db.Column(db.String(250), nullable=True)
+    climate = db.Column(db.String(250), nullable=True)
+    terrain = db.Column(db.String(250), nullable=True)
+    surface_water = db.Column(db.String(250), nullable=True)
     # id_films = db.Column(db.Integer, db.ForeignKey('films.id'))
-    # id_people = db.Column(db.Integer, db.ForeignKey('peple.id'))
-    url = db.Column(db.String(250), nullable=False)
-    created = db.Column(db.String(250), nullable=False)
-    edited = db.Column(db.String(250), nullable=False)
+    id_people = db.Column(db.Integer, db.ForeignKey('people.id'))
+    url = db.Column(db.String(250), nullable=True)
+    created = db.Column(db.String(250), nullable=True)
+    edited = db.Column(db.String(250), nullable=True)
 
-    # favoritos_planets = db.relationship('Favoritos', backref='planets', lazy=True)
+    favoritos_planets = db.relationship('Favoritos', backref='planets', lazy=True)
     
     def __repr__(self):
         return '<Planets %r>' % self.id
@@ -161,8 +167,8 @@ class Planets(db.Model):
 #     __tablename__ = 'users'
 
 #     id = db.Column(db.Integer, primary_key=True)
-#     name = db.Column(db.String(250), nullable=False)
-#     password = db.Column(db.String(250), nullable=False)
+#     name = db.Column(db.String(250), nullable=True)
+#     password = db.Column(db.String(250), nullable=True)
 
 #     # favoritos_user = db.relationship('Favoritos', backref='users', lazy=True)
 
@@ -180,15 +186,16 @@ class Favoritos(db.Model):
     __tablename__ = 'favoritos'
 
     id = db.Column(db.Integer, primary_key=True)
-    # id_user = db.Column(db.Integer, db.ForeignKey('users.id'))
-    # id_people = db.Column(db.Integer, db.ForeignKey('peple.id'))
-    # id_vehicles = db.Column(db.Integer, db.ForeignKey('vehicles.id'))
-    # id_species = db.Column(db.Integer, db.ForeignKey('species.id'))
+    id_user = db.Column(db.Integer, db.ForeignKey('user.id'), nullable = False)
+    id_people = db.Column(db.Integer, db.ForeignKey('people.id'))
+    id_vehicles = db.Column(db.Integer, db.ForeignKey('vehicles.id'))
+    id_species = db.Column(db.Integer, db.ForeignKey('species.id'))
     # id_films = db.Column(db.Integer, db.ForeignKey('films.id'))
     # id_starships = db.Column(db.Integer, db.ForeignKey('starships.id'))
-    # id_planets = db.Column(db.Integer, db.ForeignKey('planets.id'))
+    id_planets = db.Column(db.Integer, db.ForeignKey('planets.id'))
 
-    #user = db.relationship('Users', backref='hola', lazy=True)
+
+    #user = db.relationship('User', backref='favoritos', lazy=True)
 
 
 class Starships(db.Model):
@@ -196,23 +203,23 @@ class Starships(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(250), nullable=False)
-    model = db.Column(db.String(250), nullable=False)
-    starship_class = db.Column(db.String(250), nullable=False)
-    manufacturer = db.Column(db.String(250), nullable=False)
-    cost_in_credits = db.Column(db.String(250), nullable=False)
-    length = db.Column(db.String(250), nullable=False)
-    crew = db.Column(db.String(250), nullable=False)
-    passengers = db.Column(db.String(250), nullable=False)
-    max_atmosphering_speed = db.Column(db.String(250), nullable=False)
-    hyperdrive_rating = db.Column(db.String(250), nullable=False)
-    MGLT = db.Column(db.String(250), nullable=False)
-    cargo_capacity = db.Column(db.String(250), nullable=False)
-    consumables = db.Column(db.String(250), nullable=False)
+    model = db.Column(db.String(250), nullable=True)
+    starship_class = db.Column(db.String(250), nullable=True)
+    manufacturer = db.Column(db.String(250), nullable=True)
+    cost_in_credits = db.Column(db.String(250), nullable=True)
+    length = db.Column(db.String(250), nullable=True)
+    crew = db.Column(db.String(250), nullable=True)
+    passengers = db.Column(db.String(250), nullable=True)
+    max_atmosphering_speed = db.Column(db.String(250), nullable=True)
+    hyperdrive_rating = db.Column(db.String(250), nullable=True)
+    MGLT = db.Column(db.String(250), nullable=True)
+    cargo_capacity = db.Column(db.String(250), nullable=True)
+    consumables = db.Column(db.String(250), nullable=True)
     # id_films = db.Column(db.Integer, db.ForeignKey('films.id'))
     # id_people = db.Column(db.Integer, db.ForeignKey('peple.id'))
-    url = db.Column(db.String(250), nullable=False)
-    created = db.Column(db.String(250), nullable=False)
-    edited = db.Column(db.String(250), nullable=False)
+    url = db.Column(db.String(250), nullable=True)
+    created = db.Column(db.String(250), nullable=True)
+    edited = db.Column(db.String(250), nullable=True)
 
     # favoritos_starships = db.relationship('Favoritos', backref='starships', lazy=True)
 
@@ -231,22 +238,22 @@ class Species(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(250), nullable=False)
-    classification = db.Column(db.String(250), nullable=False)
-    designation = db.Column(db.String(250), nullable=False)
-    average_height = db.Column(db.String(250), nullable=False)
-    average_lifespan = db.Column(db.String(250), nullable=False)
-    eye_colors = db.Column(db.String(250), nullable=False)
-    hair_colors = db.Column(db.String(250), nullable=False)
-    skin_colors = db.Column(db.String(250), nullable=False)
-    language = db.Column(db.String(250), nullable=False)
-    homeworld = db.Column(db.String(250), nullable=False)
+    classification = db.Column(db.String(250), nullable=True)
+    designation = db.Column(db.String(250), nullable=True)
+    average_height = db.Column(db.String(250), nullable=True)
+    average_lifespan = db.Column(db.String(250), nullable=True)
+    eye_colors = db.Column(db.String(250), nullable=True)
+    hair_colors = db.Column(db.String(250), nullable=True)
+    skin_colors = db.Column(db.String(250), nullable=True)
+    language = db.Column(db.String(250), nullable=True)
+    homeworld = db.Column(db.String(250), nullable=True)
     # id_people = db.Column(db.Integer, db.ForeignKey('peple.id'))
     # id_films = db.Column(db.Integer, db.ForeignKey('films.id'))
-    url = db.Column(db.String(250), nullable=False)
-    created = db.Column(db.String(250), nullable=False)
-    edited = db.Column(db.String(250), nullable=False)
+    url = db.Column(db.String(250), nullable=True)
+    created = db.Column(db.String(250), nullable=True)
+    edited = db.Column(db.String(250), nullable=True)
 
-    # favoritos_species = db.relationship('Favoritos', backref='species', lazy=True)
+    favoritos_species = db.relationship('Favoritos', backref='species', lazy=True)
     def __repr__(self):
         return '<Species %r>' % self.id
 
