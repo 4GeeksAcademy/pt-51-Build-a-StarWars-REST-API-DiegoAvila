@@ -11,8 +11,11 @@ from admin import setup_admin
 from models import db, User, People, Planets, Favoritos
 #from models import Person
 
+from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager
+
 app = Flask(__name__)
 app.url_map.strict_slashes = False
+
 
 db_url = os.getenv("DATABASE_URL")
 if db_url is not None:
@@ -25,6 +28,10 @@ MIGRATE = Migrate(app, db)
 db.init_app(app)
 CORS(app)
 setup_admin(app)
+# Setup the Flask-JWT-Extended extension
+app.config["JWT_SECRET_KEY"] = "super-secret"  # Change this!
+jwt = JWTManager(app)
+
 
 # Handle/serialize errors like a JSON object
 @app.errorhandler(APIException)
@@ -133,22 +140,34 @@ def get_all_users():
         "User": user_query
     }
     return jsonify(response_body), 200
+
 #obten los favoritos de todos los usuarios
+
 @app.route('/user/favoritos/', methods=['GET'])
+@jwt_required()
 def get_favorite_one_user():
-    user_query = User.query.all() #estamos haciendo una consulta a la User para que traiga todos
-    user_query = list(map(lambda item: item.serialize(), user_query)) #estamos haciendo una consulta a la User para que traiga todos
-    print(user_query)
+
+    current_user = get_jwt_identity()
+
+    user_query = User.query.filter_by(name=current_user).first() #estamos haciendo una consulta a la User para que traiga todos
+    # user_query = list(map(lambda item: item.serialize(), user_query)) #estamos haciendo una consulta a la User para que traiga todos
+    print(user_query.id)
     
-    if user_query == []:
-        return jsonify({
-            "msg": "User not found"
-        }), 404
-    
+    if not user_query:
+        return jsonify({"msg": "Usuario no encontrado"}), 404
+
+    # Obtenemos los favoritos del usuario actual
+    user_favorites_query = Favoritos.query.filter_by(id_user=user_query.id).all()
+    user_favorites_query = list(map(lambda item: item.serialize(), user_favorites_query))
+
+    if not user_favorites_query:
+        return jsonify({"msg": "No hay favoritos registrados"}), 404
+
     response_body = {
         "msg": "ok",
-        "User": user_query
+        "favorites": user_favorites_query
     }
+
     return jsonify(response_body), 200
 
 # añade un planeta favorito al usuario actual
@@ -193,26 +212,71 @@ def add_favorite_people_to_user(id_people):
     }
     return jsonify(response_body), 200
 
-# elimuna un planeta favorito al usuario actual
+# elimuna un planeta favorito
 @app.route('/favoritos/planets/<int:id_planet>', methods=['DELETE'])
 def delete_favorite_planet_to_user(id_planet):
 
     body = request.json
 
-    # delete_favorit_planet = Favoritos.query.get(id_user = body["id_user"], id_planets = id_planet)
-    db.session.delete(delete_favorite_planet_to_user)
+    delete_favorite_planet = Favoritos.query.filter_by(id_planets = id_planet).first()
+    db.session.delete(delete_favorite_planet)
     db.session.commit()
-    print(delete_favorite_planet_to_user)
+    # print(delete_favorite_planet)
 
-    # if new_favorit_planet == "-":
-    #     return jsonify({
-    #         "msg": "User not found"
-    #     }), 404
+    # if delete_favorite_planet == "-":
+    #      return jsonify({
+    #          "msg": "User not found"
+    #      }), 404
     
     response_body = {
-        "msg": "favorito aderido",
+        "msg": "favorito eliminado",
     }
     return jsonify(response_body), 200
+
+# elimuna un personaje favorito
+@app.route('/favoritos/people/<int:id_people>', methods=['DELETE'])
+def delete_favorite_people_to_user(id_people):
+
+    body = request.json
+
+    delete_favorite_people = Favoritos.query.filter_by(id_people = id_people).first()
+    db.session.delete(delete_favorite_people)
+    db.session.commit()
+    # print(delete_favorite_planet)
+
+    # if delete_favorite_planet == "-":
+    #      return jsonify({
+    #          "msg": "User not found"
+    #      }), 404
+    
+    response_body = {
+        "msg": "favorito eliminado",
+    }
+    return jsonify(response_body), 200
+
+@app.route("/login", methods=["POST"])
+def login():
+    # id = request.json.get("id", None)
+    name = request.json.get("name", None)
+    password = request.json.get("password", None)
+
+    user_query = User.query.filter_by(name=name).first()
+
+    if name != user_query.name or password != user_query.password:
+        return jsonify({"msg": "Bad username or password"}), 401
+
+    access_token = create_access_token(identity=name)
+    return jsonify(access_token=access_token)
+
+@app.route("/protected", methods=["GET"])
+@jwt_required()
+def protected():
+    # Access the identity of the current user with get_jwt_identity
+    current_user = get_jwt_identity()
+    info_profile = User.query.filter_by(name=current_user).first()
+
+    return jsonify({"user":info_profile.serialize()}), 200
+    # return jsonify(logged_in_as=current_user), 200
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':

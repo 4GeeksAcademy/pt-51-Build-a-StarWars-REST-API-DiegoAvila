@@ -196,7 +196,31 @@ class Favoritos(db.Model):
 
 
     #user = db.relationship('User', backref='favoritos', lazy=True)
+    def __repr__(self):
+        return '<Favoritos %r>' % self.id
 
+    def serialize(self):
+        if self.id_people is not None:
+            people = People.query.filter_by(id=self.id_people).first()
+            return{
+                "id": self.id,
+                "user": self.id_user,
+                "info_people": people.serialize()
+            }
+        if self.id_planets is not None:
+            planet = Planets.query.filter_by(id=self.id_planets).first()
+            return{
+                "id": self.id,
+                "user": self.id_user,
+                "info_planet": planet.serialize()
+            }
+        return {
+            "id": self.id,
+            "user": self.id_user,
+            "info_people": None if self.id_people is None else people.serialize(),
+            "info_planet": None if self.id_planets is None else planet.serialize()
+            # do not serialize the password, its a security breach
+        }
 
 class Starships(db.Model):
     __tablename__ = 'starships'
